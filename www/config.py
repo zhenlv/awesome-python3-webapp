@@ -11,7 +11,7 @@ class Dict(dict):
 		try:
 			return self[key]
 		except KeyError:
-			raise AttributeError(r"'Dict' object has no attribute '%s'" %s key)
+			raise AttributeError(r"'Dict' object has no attribute '%s'" % key)
 
 	def __setattr__(self,key,value):
 		self[key] = value
@@ -31,7 +31,7 @@ def merge(default,override):
 
 def toDict(d):
 	D = Dict()
-	for k,v in d.items:
+	for k,v in d.items():
 		D[k] = toDict(v) if isinstance(v,dict) else v
 	return D
 
