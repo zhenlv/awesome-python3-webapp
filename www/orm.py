@@ -199,11 +199,11 @@ class Model(dict,metaclass=ModelMetaclass):
 			return None
 		return cls(**rs[0])
 
-	@asyncio.coroutine
-	def save(self):
+	
+	async def save(self):
 		args = list(map(self.getValueOrDefault,self.__fields__))
 		args.append(self.getValueOrDefault(self.__primary_key__))
-		rows = yield from execute(self.__insert__,args)
+		rows = await execute(self.__insert__,args)
 		if rows != 1:
 			logging.warn('failed to insert record: affected rows: %s' % rows)
 
