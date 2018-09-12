@@ -53,6 +53,7 @@ async def auth_factory(app,handler):
         		logging.info('set current user: %s' % user.email)
         		request.__user__ = user
         if request.path.startswith('/manage/') and (request.__user__ is None or not request.__user__.admin):
+        	logging.info('====> switch to signin page ,user:%s,admin:%s ==========' % (request.__user__,request.__user__.admin if request.__user__ else False))
         	return web.HTTPFound('/signin')
         return (await handler(request))
     return auth
