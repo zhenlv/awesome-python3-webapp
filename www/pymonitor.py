@@ -13,8 +13,11 @@ class MyFileSystemEventHandler(FileSystemEventHandler):
 		self.restart = fn
 
 	def on_any_event(self,event):
-		if event.scr_path.endswith('.py'):
-			log('Python Source File Changed : %s' % event.scr_path)
+		if event.src_path.endswith('.py'):
+			log('================================ Python Source File Changed : %s ===========================' % event.src_path)
+			self.restart()
+		if event.src_path.endswith('.html'):
+			log('================================ Python Source File Changed : %s ===========================' % event.src_path)
 			self.restart()
 
 command = ['echo','ok']

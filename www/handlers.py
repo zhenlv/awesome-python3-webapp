@@ -215,6 +215,15 @@ def manage_create_blog(request):
 		'__user__':request.__user__
 	}
 
+@get('/manage/blogs/edit')
+def manage_get_blogs(*,id):
+	return {
+		'__template__':'manage_blog_edit.html',
+		'id':id,
+		'action':'/api/blogs'
+		}
+
+
 @post('/api/blogs')
 async def api_create_blog(request,*,name,summary,content):
 	check_admin(request)
@@ -236,6 +245,7 @@ async def api_create_blog(request,*,name,summary,content):
 	await blog.save()
 	return blog
 
+aa = 1
 
 
 
