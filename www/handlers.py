@@ -79,12 +79,12 @@ async def api_blogs(*,page='1'):
 		return dict(page=p,blogs=())
 	blogs = await Blog.findAll(orderBy='created_at desc',limit=(p.offset,p.limit))
 	return dict(page=p,blogs=blogs)
-	# 日志详情页：GET /blog/:blog_id	
-@get('/api/blogs/{id}')
-async def get_blog(id):
+# 日志详情页：GET /blog/:blog_id	
+@get('/api/blog/{id}')
+async def get_blog_by_id(id):
     blog = await Blog.find(id)
-    logging.info('get blog:%s' % bolg)
-    return dict(blog=blog)
+    logging.info('get blog:%s' % blog)
+    return blog
 # 创建日志：POST /api/blogs
 @post('/api/blogs')
 async def api_create_blog(request,*,name,summary,content):
@@ -119,9 +119,9 @@ async def api_update_blog(id,request,*,name,summary,content):
 
 	blog = await Blog.find(id)
 	blog.name = name.strip()
-	bolg.summary = summary.strip()
+	blog.summary = summary.strip()
 	blog.content = content.strip()
-	await blog.save()
+	await blog.update()
 	return blog
 # 删除日志：POST /api/blogs/:blog_id/delete
 @post('/api/blogs/{id}/delete')
@@ -153,7 +153,7 @@ async def api_create_comment(id,request,*,content):
 	if blog is None:
 		raise APIResourceNotFoundError('Blog')
 	comment = Comment(
-		blog_id = bolg.id,
+		blog_id = blog.id,
 		user_id = user.id,
 		user_name = user.name,
 		user_image = user.image,
@@ -201,6 +201,7 @@ async def api_register_user(*,email,name,passwd):
 async def api_get_users(*,page='1'):
 	page_index = get_page_index(page)
 	num = await User.findNumber('count(id)')
+	p = Page(num,page_index)
 	if num == 0:
 		return dict(page=p,users=())
 	users = await User.findAll(orderby='created_at desc',limit=(p.offset,p.limit))
