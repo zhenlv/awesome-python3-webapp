@@ -68,30 +68,6 @@ def text2html(text):
 	return ''.join(lines)
 
 
-
-
-
-
-
-@get('/')
-async def index(request):
-	summary = 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
-	'''
-	blogs = [
-		Blog(id='1', name='Test Blog', summary=summary, created_at=time.time()-120),
-        Blog(id='2', name='Something New', summary=summary, created_at=time.time()-3600),
-        Blog(id='3', name='Learn Swift', summary=summary, created_at=time.time()-7200)
-	]
-	'''
-
-	blogs = await Blog.findAll(orderBy='created_at desc')
-	return {
-		'__template__':'blogs.html',
-		'blogs':blogs,
-		'__user__':request.__user__
-	}	
-
-
 ### 后端API
 # 获取日志：GET /api/blogs
 @get('/api/blogs')
@@ -103,6 +79,12 @@ async def api_blogs(*,page='1'):
 		return dict(page=p,blogs=())
 	blogs = await Blog.findAll(orderBy='created_at desc',limit=(p.offset,p.limit))
 	return dict(page=p,blogs=blogs)
+	# 日志详情页：GET /blog/:blog_id	
+@get('/api/blogs/{id}')
+async def get_blog(id):
+    blog = await Blog.find(id)
+    logging.info('get blog:%s' % bolg)
+    return dict(blog=blog)
 # 创建日志：POST /api/blogs
 @post('/api/blogs')
 async def api_create_blog(request,*,name,summary,content):
@@ -232,17 +214,16 @@ async def api_get_users(*,page='1'):
 @get('/manage/')
 def manage():
 	return 'redirect:/manage/comments'
-
 # 评论列表页：GET /manage/comments
 @get('/manage/comments')
-async def manage_comments(*,page='1'):
+def manage_comments(*,page='1'):
 	return {
 		'__template__':'manage_comments.html',
 		'page_index': get_page_index(page)
-	}
+		}
 # 日志列表页：GET /manage/blogs
 @get('/manage/blogs')
-def manage_blogs(*,page='1')
+def manage_blogs(*,page='1'):
 	return {
 		'__template__': 'manage_blogs.html',
 		'page_index' : get_page_index(page)
@@ -262,20 +243,61 @@ def manage_get_blogs(*,id):
 	return {
 		'__template__':'manage_blog_edit.html',
 		'id':id,
-		'action':'/api/blogs%s' % id
+		'action':'/api/blogs/%s' % id
 		}
-
-
 # 用户列表页：GET /manage/users
+@get('/manage/users')
+def manage_users(*,page='1'):
+	return{
+		'__template__':'manage_users.html',
+		'page_index':get_page_index(page)
+	} 
 
-
+### 用户浏览页面包括：
+# 注册页：GET /register
 @get('/register')
 def register():
 	return {'__template__':'register.html'}
-
+# 登录页：GET /signin
 @get('/signin')
 def signin():
 	return {'__template__':'signin.html'}
+# 注销页：GET /signout
+@get('/signout')
+def signout(request):
+	referer = request.headers.get('Referer')
+	r = web.HTTPFound(referer or '/')
+	r.set_cookie(COOKIE_NAME,'-deleted-',max_age=0,httponly=True)
+	logging.info('user signed out.')
+	return r
+# 首页：GET /
+@get('/')
+async def index(*,page='1'):
+	page_index = get_page_index(page)
+	num = await Blog.findNumber('count(id)')
+	page = Page(num)
+	blogs = await Blog.findAll(orderBy='created_at desc',limit=(page.offset,page.limit))
+	return {
+		'__template__':'blogs.html',
+		'page':page,
+		'blogs':blogs
+	}	
+# 日志详情页：GET /blog/:blog_id	
+@get('/blog/{id}')
+async def get_blog(id):
+    blog = await Blog.find(id)
+    comments = await Comment.findAll('blog_id=?', [id], orderBy='created_at desc')
+    for c in comments:
+        c.html_content = text2html(c.content)
+    blog.html_content = markdown2.markdown(blog.content)
+    return {
+        '__template__': 'blog.html',
+        'blog': blog,
+        'comments': comments
+    }
+
+
+
 
 @post('/api/authenticate')
 async def authenticate(*,email,passwd):
@@ -301,61 +323,6 @@ async def authenticate(*,email,passwd):
 	r.content_type = 'application/json'
 	r.body = json.dumps(user,ensure_ascii=False).encode('utf-8')
 	return r
-
-@get('/signout')
-def signout(request):
-	referer = request.headers.get('Referer')
-	r = web.HTTPFound(referer or '/')
-	r.set_cookie(COOKIE_NAME,'-deleted-',max_age=0,httponly=True)
-	logging.info('user signed out.')
-	return r
-
-
-
-
-
-
-
-@get('/blog/{id}')
-async def get_blog(id):
-    blog = await Blog.find(id)
-    comments = await Comment.findAll('blog_id=?', [id], orderBy='created_at desc')
-    for c in comments:
-        c.html_content = text2html(c.content)
-    blog.html_content = markdown2.markdown(blog.content)
-    return {
-        '__template__': 'blog.html',
-        'blog': blog,
-        'comments': comments
-    }
-
-
-
-
-
-@get('/api/blogs/{id}')
-async def api_get_blog(*,id):
-	blog = await Blog.find(id)
-	return blog
-
-@
-
-
-
-
-aa = 1
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
