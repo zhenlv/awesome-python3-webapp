@@ -12,7 +12,8 @@ import os, re
 from datetime import datetime
 from fabric.api import *
 
-env.user = 'lvzhen'
+env.user = 'root'
+env.password = 'wanglei0714'
 env.sudo_user = 'root'
 env.hosts = ['188.131.139.152']
 
@@ -69,13 +70,14 @@ def deploy():
     with cd(_REMOTE_BASE_DIR):
         sudo('rm -f www')
         sudo('ln -s %s www' % newdir)
-        sudo('chown www-data:www-data www')
-        sudo('chown -R www-data:www-data %s' % newdir)
+        sudo('chown root:root www')
+        sudo('chown -R root:root %s' % newdir)
+    """
     with settings(warn_only=True):
         sudo('supervisorctl stop awesome')
         sudo('supervisorctl start awesome')
         sudo('/etc/init.d/nginx reload')
-
+    """
 RE_FILES = re.compile('\r?\n')
 
 def rollback():
